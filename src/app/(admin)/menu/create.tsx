@@ -1,8 +1,13 @@
 import Button from "@/components/Button";
+import { defaultPizzaImage } from "@/components/ProductListItem";
+import Colors from "@/constants/Colors";
 import { useState } from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import { View, Text, StyleSheet, TextInput, Image } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Stack } from "expo-router";
 
 const CreateProductScreen = () => {
+  const [image, setImage] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [errors, setErrors] = useState("");
@@ -37,22 +42,46 @@ const CreateProductScreen = () => {
     resetFields;
   };
 
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
   return (
-    <View style={style.container}>
-      <Text style={style.label}>Name</Text>
+    <View style={styles.container}>
+      <Stack.Screen options={{ title: "Create Product" }} />
+      <Image
+        source={{ uri: image || defaultPizzaImage }}
+        style={styles.image}
+      />
+      <Text onPress={pickImage} style={styles.textButton}>
+        Select Image
+      </Text>
+      <Text style={styles.label}>Name</Text>
       <TextInput
         value={name}
         onChangeText={setName}
         placeholder="Margarita..."
-        style={style.input}
+        style={styles.input}
       />
 
-      <Text style={style.label}>Price ($)</Text>
+      <Text style={styles.label}>Price ($)</Text>
       <TextInput
         value={price}
         onChangeText={setPrice}
         placeholder="9.99"
-        style={style.input}
+        style={styles.input}
         keyboardType="numeric"
       />
       <Text style={{ color: "red" }}>{errors}</Text>
@@ -61,7 +90,18 @@ const CreateProductScreen = () => {
   );
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
+  image: {
+    width: "50%",
+    aspectRatio: 1,
+    alignSelf: "center",
+  },
+  textButton: {
+    alignSelf: "center",
+    fontWeight: "bold",
+    color: Colors.light.tint,
+    marginVertical: 10,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
