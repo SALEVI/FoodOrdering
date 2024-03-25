@@ -3,31 +3,24 @@ import Colors from "@/constants/Colors";
 import { Link, Stack } from "expo-router";
 import { useState } from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
+import { supabase } from "@/lib/supabase";
+import { Alert } from "react-native";
 
 const SignInScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const validateInput = () => {
-    setErrors("");
-    if (!email) {
-      setErrors("Name is required");
-      return false;
-    }
-    if (!password) {
-      setErrors("Price is required");
-      return false;
-    }
-    return true;
-  };
+  async function singInWithEmail() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  const onSignIn = () => {
-    if (!validateInput()) {
-      return;
-    }
-    console.warn("Signed in with:", email, password);
-  };
+    if (error) Alert.alert(error.message);
+    setLoading(false);
+  }
 
   return (
     <View style={styles.container}>
@@ -48,9 +41,12 @@ const SignInScreen = () => {
         style={styles.input}
         secureTextEntry={true}
       />
-      <Text style={{ color: "red" }}>{errors}</Text>
-      <Button onPress={onSignIn} text={"Sign in"} />
-      <Link href="/(auth)/sign-up" asChild>
+      <Button
+        onPress={singInWithEmail}
+        disabled={loading}
+        text={loading ? "Signing in..." : "Sign in"}
+      />
+      <Link href="/sign-up" asChild>
         <Text style={styles.textButton}>Create an account</Text>
       </Link>
     </View>
